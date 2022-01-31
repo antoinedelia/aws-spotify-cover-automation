@@ -1,0 +1,9 @@
+*.env
+__pycache__/
+.cache
+*.jpg
+*.Identifier
+node_modules/
+package-lock.json
+package.json
+.serverless/

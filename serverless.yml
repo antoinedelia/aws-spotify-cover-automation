@@ -1,0 +1,43 @@
+service: spotify-cover-automation
+
+provider:
+  name: aws
+  stage: prod
+  runtime: python3.9
+  region: eu-west-1
+  iam:
+    role:
+      statements:
+      - Effect: 'Allow'
+        Action: '*'
+        Resource: '*'
+
+package:
+  patterns:
+    - "!node_modules/**"
+    - "!serverless_deployment/**"
+    - "!assets/**"
+    - "!tests/**"
+
+custom:
+  s3Sync:
+    - bucketName: antoinedelia
+      localDir: web
+
+functions:
+  cover_automation:
+    handler: src/main.lambda_handler
+    name: spotify-cover-automation
+    timeout: 29
+    maximumRetryAttempts: 1
+    events:
+      - http:
+          path: /spotify/cover-automation
+          method: post
+          cors:
+            headers:
+              - '*'
+
+plugins:
+  - serverless-python-requirements
+  - serverless-s3-sync

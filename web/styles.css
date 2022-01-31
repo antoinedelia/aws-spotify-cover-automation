@@ -1,0 +1,12 @@
+#loadingMessage {
+    visibility: hidden;
+}
+
+#successMessage {
+    visibility: hidden;
+}
+
+#errorMessage {
+    visibility: hidden;
+}
+
