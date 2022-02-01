@@ -57,8 +57,8 @@ def lambda_handler(event, context):
             image_response = requests.get(image_url)
             img = Image.open(BytesIO(image_response.content))
             img.thumbnail((ARTIST_IMAGE_SIZE, ARTIST_IMAGE_SIZE), Image.ANTIALIAS)
-            x = index // 2 * ARTIST_IMAGE_SIZE
-            y = index % 2 * ARTIST_IMAGE_SIZE
+            x = index % 2 * ARTIST_IMAGE_SIZE
+            y = index // 2 * ARTIST_IMAGE_SIZE
             w, h = img.size
             playlist_cover.paste(img, (x, y, x + w, y + h))
 
