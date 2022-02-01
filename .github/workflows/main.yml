@@ -22,13 +22,24 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      - name: Serverless
-        # You may pin to the exact commit or the version.
-        # uses: serverless/github-action@8f96a6db886d4ce30c6063dd9919a8a1a4a6d9cf
-        uses: serverless/github-action@v1.53.0
+      - name: Use Node.js 17.x
+        uses: actions/setup-node@v2
         with:
-          args: deploy
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          node-version: 17.x
+          cache: 'npm'
+          cache-dependency-path: ./package-lock.json
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@master
+        with:
+          aws-region: eu-west-1
+          role-to-assume: ${{secrets.ROLE_ARN}}
+      - name: Install Serverless Framework
+        run: npm install -g serverless
+      - name: Install Serverless Plugins
+        run: |
+          serverless plugin install -n serverless-python-requirements
+          npm install --save serverless-s3-sync
+      - name: Serverless Authentication
+        run: sls config credentials --provider aws --key ${{ env.AWS_ACCESS_KEY_ID }} --secret ${{ env.AWS_SECRET_ACCESS_KEY }}
+      - name: Deploy to AWS
+        run: serverless deploy --stage prod --verbose
