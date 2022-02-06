@@ -15,7 +15,7 @@ class Spotify:
 
     def get_playlist_tracks(self, playlist_id: str) -> list:
         response = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=self.headers)
-        logger.info(response.json())
+        logger.debug(response.json())
         results = response.json()
 
         tracks = []
@@ -32,12 +32,12 @@ class Spotify:
 
     def get_playlist_name(self, playlist_id: str) -> str:
         response = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}", headers=self.headers)
-        logger.info(response.json())
+        logger.debug(response.json())
         return response.json()["name"]
 
     def get_artist_image_by_id(self, artist_id: str) -> str:
         response = requests.get(f"https://api.spotify.com/v1/artists/{artist_id}", headers=self.headers)
-        logger.info(response.json())
+        logger.debug(response.json())
         return response.json()["images"][0]["url"]
 
     def update_playlist_cover_image(self, playlist_id: str, image) -> None:
