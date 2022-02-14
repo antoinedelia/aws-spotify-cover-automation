@@ -27,6 +27,8 @@ def lambda_handler(event, context):
 
     spotify = Spotify(access_token)
 
+    results = []
+
     for playlist_uri in SPOTIFY_PLAYLISTS_URIS:
         playlist_id = spotify.get_playlist_id_from_uri(playlist_uri)
         playlist_name = spotify.get_playlist_name(playlist_id)
@@ -90,4 +92,9 @@ def lambda_handler(event, context):
         playlist_cover_string = base64.b64encode(buffered.getvalue())
         spotify.update_playlist_cover_image(playlist_id, playlist_cover_string)
 
-        return format_response(f"Updated playlist cover for {playlist_name}", 200)
+        results.append({
+            "playlist_name": playlist_name,
+            "artists": [f"{artist_name} ({occurence})" for artist_name, occurence in four_most_common]
+        })
+
+    return format_response("Updated playlist cover!", 200, results)
