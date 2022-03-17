@@ -33,8 +33,8 @@ function updateArtCover() {
     .then(result => {
         console.log(result)
         successMessage.style.visibility = "visible";
-        responseMessage.innerHTML = result.artists;
-        playlistImage.src = "data:image/jpeg;base64," + result.playlist_cover_b64;
+        responseMessage.innerHTML = result.body[0].artists;
+        playlistImage.src = "data:image/jpeg;base64," + result.body[0].playlist_cover_b64;
     }).catch(function(error) {
         console.log(error);
         errorMessage.style.visibility = "visible";
