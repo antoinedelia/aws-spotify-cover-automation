@@ -28,12 +28,13 @@ function updateArtCover() {
         body: JSON.stringify({
             "access_token": localStorage.getItem('access_token')
         })
-    }).then(function(response) {
-        data = response.json();
-        console.log(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
         successMessage.style.visibility = "visible";
-        responseMessage.innerHTML = data.artists;
-        playlistImage.src = "data:image/jpeg;base64," + data.playlist_cover_b64;
+        responseMessage.innerHTML = result.artists;
+        playlistImage.src = "data:image/jpeg;base64," + result.playlist_cover_b64;
     }).catch(function(error) {
         console.log(error);
         errorMessage.style.visibility = "visible";
