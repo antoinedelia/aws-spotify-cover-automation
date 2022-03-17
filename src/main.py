@@ -94,7 +94,8 @@ def lambda_handler(event, context):
 
         results.append({
             "playlist_name": playlist_name,
-            "artists": [f"{artist_name} ({occurence})" for artist_name, occurence in four_most_common]
+            "artists": [f"{artist_name} ({occurence})" for artist_name, occurence in four_most_common],
+            "playlist_cover_b64": playlist_cover_string
         })
 
     return format_response("Updated playlist cover!", 200, results)

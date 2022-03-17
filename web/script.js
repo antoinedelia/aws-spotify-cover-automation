@@ -3,6 +3,8 @@ var redirect_uri = 'http://antoinedelia.s3-website-eu-west-1.amazonaws.com/';
 var loadingMessage = document.getElementById("loadingMessage")
 var successMessage = document.getElementById("successMessage")
 var errorMessage = document.getElementById("errorMessage")
+var responseMessage = document.getElementById("responseMessage")
+var playlistImage = document.getElementById("playlistImage")
 var isLoading = false;
 
 function login() {
@@ -29,6 +31,8 @@ function updateArtCover() {
     }).then(function(response) {
         console.log(response.json());
         successMessage.style.visibility = "visible";
+        responseMessage.innerHTML = response.json().artists;
+        playlistImage.src = "data:image/jpeg;base64," + response.json().playlist_cover_b64;
     }).catch(function(error) {
         console.log(error);
         errorMessage.style.visibility = "visible";
