@@ -29,10 +29,11 @@ function updateArtCover() {
             "access_token": localStorage.getItem('access_token')
         })
     }).then(function(response) {
-        console.log(response.json());
+        data = response.json();
+        console.log(data)
         successMessage.style.visibility = "visible";
-        responseMessage.innerHTML = response.json().artists;
-        playlistImage.src = "data:image/jpeg;base64," + response.json().playlist_cover_b64;
+        responseMessage.innerHTML = data.artists;
+        playlistImage.src = "data:image/jpeg;base64," + data.playlist_cover_b64;
     }).catch(function(error) {
         console.log(error);
         errorMessage.style.visibility = "visible";
