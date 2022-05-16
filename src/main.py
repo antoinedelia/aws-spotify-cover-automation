@@ -86,6 +86,9 @@ def lambda_handler(event, context):
         # Converting back to RGB
         playlist_cover = playlist_cover.convert('RGB')
 
+        # Reduce the size of the image
+        playlist_cover.thumbnail((ARTIST_IMAGE_SIZE, ARTIST_IMAGE_SIZE), Image.ANTIALIAS)
+
         logger.info("Updating playlist cover...")
         buffered = BytesIO()
         playlist_cover.save(buffered, format="JPEG")

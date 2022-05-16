@@ -48,4 +48,3 @@ class Spotify:
             data=image,
         )
         logger.info(response.status_code)
-        logger.info(response.json())
