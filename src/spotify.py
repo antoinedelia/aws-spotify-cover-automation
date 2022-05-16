@@ -42,8 +42,10 @@ class Spotify:
 
     def update_playlist_cover_image(self, playlist_id: str, image) -> None:
         self.headers["Content-Type"] = "image/jpeg"
-        requests.put(
+        response = requests.put(
             f"https://api.spotify.com/v1/playlists/{playlist_id}/images",
             headers=self.headers,
             data=image,
         )
+        logger.info(response.status_code)
+        logger.info(response.json())
