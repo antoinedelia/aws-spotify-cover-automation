@@ -3,14 +3,8 @@ service: spotify-cover-automation
 provider:
   name: aws
   stage: prod
-  runtime: python3.9
+  runtime: python3.13
   region: eu-west-1
-  iam:
-    role:
-      statements:
-      - Effect: 'Allow'
-        Action: '*'
-        Resource: '*'
 
 package:
   patterns:
@@ -21,7 +15,7 @@ package:
 
 custom:
   s3Sync:
-    - bucketName: antoinedelia
+    - bucketName: spotify.antoinedelia.fr
       localDir: web
 
 functions:
@@ -34,6 +28,18 @@ functions:
       - http:
           path: /spotify/cover-automation
           method: post
+          cors:
+            headers:
+              - '*'
+  get_playlists:
+    handler: src/handlers/get_playlists.lambda_handler
+    name: ${sls:service}-${sls:stage}-get_playlists
+    timeout: 29
+    maximumRetryAttempts: 1
+    events:
+      - http:
+          path: /spotify-cover-automation/playlists
+          method: get
           cors:
             headers:
               - '*'

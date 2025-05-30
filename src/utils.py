@@ -1,5 +1,6 @@
-from loguru import logger
 import json
+
+from loguru import logger
 
 
 def format_response(message: str, status_code: int = 500, data=None):
@@ -12,18 +13,12 @@ def format_response(message: str, status_code: int = 500, data=None):
     else:
         logger.info(message)
 
-    body = {
-        "message": str(message),
-        "body": data
-    }
+    body = {"message": str(message), "body": data}
 
     return {
-        'statusCode': status_code,
-        'headers': {
-            'Content-Type': 'application/json',
-            "Access-Control-Allow-Origin": "*"
-        },
-        'body': json.dumps(body)
+        "statusCode": status_code,
+        "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
+        "body": json.dumps(body),
     }
 
 

@@ -24,15 +24,15 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - name: Use Node.js 17.x
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
+      - name: Use Node.js 24.x
+        uses: actions/setup-node@v4
         with:
-          node-version: 17.x
-      - name: Install Python 3.9
-        uses: actions/setup-python@v2
+          node-version: 24.x
+      - name: Install Python 3.13
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          python-version: '3.13'
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
