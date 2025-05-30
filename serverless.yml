@@ -1,5 +1,7 @@
 service: spotify-cover-automation
 
+configValidationMode: warn
+
 provider:
   name: aws
   stage: prod
