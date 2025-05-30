@@ -37,6 +37,18 @@ functions:
           cors:
             headers:
               - '*'
+  get_playlists:
+    handler: src/handlers/get_playlists.lambda_handler
+    name: ${sls:service}-${sls:stage}-get_playlists
+    timeout: 29
+    maximumRetryAttempts: 1
+    events:
+      - http:
+          path: /spotify-cover-automation/playlists
+          method: get
+          cors:
+            headers:
+              - '*'
 
 plugins:
   - serverless-python-requirements

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 import requests
 from loguru import logger
@@ -8,6 +8,9 @@ from loguru import logger
 class SpotifyPlaylist:
     id: str
     name: str
+
+    def to_dict(self):
+        return asdict(self)
 
 
 class Spotify:
