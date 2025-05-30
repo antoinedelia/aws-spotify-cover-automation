@@ -4,6 +4,7 @@ var loadingMessage = document.getElementById("loadingMessage")
 var successMessage = document.getElementById("successMessage")
 var errorMessage = document.getElementById("errorMessage")
 var responseMessage = document.getElementById("responseMessage")
+var playlists = document.getElementById("playlists")
 var playlistImage = document.getElementById("playlistImage")
 var isLoading = false;
 
@@ -11,6 +12,32 @@ function login() {
     var scope = 'user-library-read playlist-modify-public playlist-modify-private playlist-read-private ugc-image-upload';                
     var url = "https://accounts.spotify.com/authorize?response_type=token&scope=" + scope + "&client_id=" + client_id + "&redirect_uri=" + redirect_uri;
     window.location = url;
+}
+
+function getAllPlaylists() {
+    isLoading = true;
+    loadingMessage.style.visibility = "visible";
+    playlists.style.visibility = "hidden";
+    var apiUrl = "https://dn3etvqcik.execute-api.eu-west-1.amazonaws.com/prod/spotify-cover-automation/playlists"
+    fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'X-Spotify-Token': localStorage.getItem('access_token')
+        },
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result)
+        playlists.style.visibility = "visible";
+        playlists.innerHTML = result.body;
+    }).catch(function(error) {
+        console.log(error);
+    }).finally(function() {
+        isLoading = false;
+        loadingMessage.style.visibility = "hidden";
+    });
 }
 
 function updateArtCover() {
