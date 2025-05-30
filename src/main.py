@@ -26,13 +26,14 @@ def lambda_handler(event, context):
 
     results = []
 
-    for playlist_uri in SPOTIFY_PLAYLISTS_URIS:
-        playlist_id = Spotify.get_playlist_id_from_uri(playlist_uri)
-        playlist_name = spotify.get_playlist_name(playlist_id)
-        logger.info(f"Playlist: {playlist_name}")
+    user_id = spotify.get_user_id()
+    playlists = spotify.get_user_playlists(user_id)
+
+    for playlist in playlists:
+        logger.info(f"Playlist: {playlist.name}")
 
         # Get the tracks from the playlist
-        tracks = spotify.get_playlist_tracks(playlist_id)
+        tracks = spotify.get_playlist_tracks(playlist.id)
 
         artists = []
         for track in tracks:
@@ -75,7 +76,7 @@ def lambda_handler(event, context):
         font = ImageFont.truetype("./src/fonts/Montserrat-Bold.ttf", 120)
         draw.text(
             xy=(ARTIST_IMAGE_SIZE, IMAGE_SIZE - 50),
-            text=playlist_name,
+            text=playlist.name,
             fill=(255, 255, 255),
             anchor="ms",
             font=font,
@@ -92,11 +93,11 @@ def lambda_handler(event, context):
         buffered = BytesIO()
         playlist_cover.save(buffered, format="JPEG")
         playlist_cover_string = base64.b64encode(buffered.getvalue())
-        spotify.update_playlist_cover_image(playlist_id, playlist_cover_string)
+        spotify.update_playlist_cover_image(playlist.id, playlist_cover_string)
 
         results.append(
             {
-                "playlist_name": playlist_name,
+                "playlist_name": playlist.name,
                 "artists": [f"{artist_name} ({occurence})" for artist_name, occurence in four_most_common],
                 "playlist_cover_b64": playlist_cover_string.decode("utf-8"),
             }

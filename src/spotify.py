@@ -1,5 +1,13 @@
+from dataclasses import dataclass
+
 import requests
 from loguru import logger
+
+
+@dataclass
+class SpotifyPlaylist:
+    id: str
+    name: str
 
 
 class Spotify:
@@ -19,8 +27,8 @@ class Spotify:
         if r.ok:
             return r.json()["id"]
 
-    def get_user_playlists(self, user_id: str, limit: int = 10) -> list:
-        playlists = []
+    def get_user_playlists(self, user_id: str, limit: int = 10) -> list[SpotifyPlaylist]:
+        playlists: list[SpotifyPlaylist] = []
         url = f"https://api.spotify.com/v1/users/{user_id}/playlists?limit={limit}"
 
         while url:
@@ -31,12 +39,7 @@ class Spotify:
                 logger.debug(f"Fetched user playlists page: {url}, Items: {len(results.get('items', []))}")
 
                 for item in results.get("items", []):
-                    playlists.append(
-                        {
-                            "id": item.get("id"),
-                            "name": item.get("name"),
-                        }
-                    )
+                    playlists.append(SpotifyPlaylist(id=item.get("id"), name=item.get("name")))
 
                 url = results.get("next")
             except requests.exceptions.RequestException as e:
@@ -45,6 +48,7 @@ class Spotify:
             except ValueError as e:
                 logger.error(f"Error decoding JSON from {url} for user playlists: {e}")
                 break
+
         return playlists
 
     def get_playlist_tracks(self, playlist_id: str) -> list:
