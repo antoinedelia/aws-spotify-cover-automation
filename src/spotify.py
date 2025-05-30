@@ -1,5 +1,5 @@
-from loguru import logger
 import requests
+from loguru import logger
 
 
 class Spotify:
@@ -14,7 +14,11 @@ class Spotify:
         return playlist_id
 
     def get_playlist_tracks(self, playlist_id: str) -> list:
-        response = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=self.headers)
+        response = requests.get(
+            f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks",
+            headers=self.headers,
+            timeout=5,
+        )
         logger.debug(response.json())
         results = response.json()
 
@@ -22,7 +26,11 @@ class Spotify:
         while results["next"]:
             for item in results["items"]:
                 tracks.append(item["track"])
-            results = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks", headers=self.headers).json()
+            results = requests.get(
+                f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks",
+                headers=self.headers,
+                timeout=5,
+            ).json()
 
         # We do an extra for loop to get the last tracks
         for item in results["items"]:
@@ -31,12 +39,20 @@ class Spotify:
         return tracks
 
     def get_playlist_name(self, playlist_id: str) -> str:
-        response = requests.get(f"https://api.spotify.com/v1/playlists/{playlist_id}", headers=self.headers)
+        response = requests.get(
+            f"https://api.spotify.com/v1/playlists/{playlist_id}",
+            headers=self.headers,
+            timeout=5,
+        )
         logger.debug(response.json())
         return response.json()["name"]
 
     def get_artist_image_by_id(self, artist_id: str) -> str:
-        response = requests.get(f"https://api.spotify.com/v1/artists/{artist_id}", headers=self.headers)
+        response = requests.get(
+            f"https://api.spotify.com/v1/artists/{artist_id}",
+            headers=self.headers,
+            timeout=5,
+        )
         logger.debug(response.json())
         return response.json()["images"][0]["url"]
 
@@ -46,5 +62,6 @@ class Spotify:
             f"https://api.spotify.com/v1/playlists/{playlist_id}/images",
             headers=self.headers,
             data=image,
+            timeout=10,
         )
         logger.info(response.status_code)
