@@ -39,7 +39,7 @@ jobs:
           aws-region: eu-west-1
           role-to-assume: ${{secrets.ROLE_ARN}}
       - name: Install Serverless Framework
-        run: npm install -g serverless
+        run: npm install -g serverless@3.40.0
       - name: Install Serverless Plugins
         run: |
           serverless plugin install -n serverless-python-requirements
