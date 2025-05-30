@@ -22,14 +22,12 @@ def lambda_handler(event, context):
     body = event["body"]
     access_token = json.loads(body)["access_token"]
 
-    logger.info(f"Access Token: {access_token}")
-
     spotify = Spotify(access_token)
 
     results = []
 
     for playlist_uri in SPOTIFY_PLAYLISTS_URIS:
-        playlist_id = spotify.get_playlist_id_from_uri(playlist_uri)
+        playlist_id = Spotify.get_playlist_id_from_uri(playlist_uri)
         playlist_name = spotify.get_playlist_name(playlist_id)
         logger.info(f"Playlist: {playlist_name}")
 

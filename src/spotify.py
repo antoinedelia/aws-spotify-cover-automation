@@ -7,11 +7,45 @@ class Spotify:
         self.token = access_token
         self.headers = {"Authorization": f"Bearer {self.token}"}
 
-    def get_playlist_id_from_uri(self, uri: str) -> str:
+    @staticmethod
+    def get_playlist_id_from_uri(uri: str) -> str:
         playlist_id = uri.split("/")[-1]
         if "?" in playlist_id:
             playlist_id = playlist_id.split("?")[0]
         return playlist_id
+
+    def get_user_id(self) -> str:
+        r = requests.get("https://api.spotify.com/v1/me", headers=self.headers, timeout=5)
+        if r.ok:
+            return r.json()["id"]
+
+    def get_user_playlists(self, user_id: str, limit: int = 10) -> list:
+        playlists = []
+        url = f"https://api.spotify.com/v1/users/{user_id}/playlists?limit={limit}"
+
+        while url:
+            try:
+                response = requests.get(url, headers=self.headers, timeout=5)
+                response.raise_for_status()
+                results = response.json()
+                logger.debug(f"Fetched user playlists page: {url}, Items: {len(results.get('items', []))}")
+
+                for item in results.get("items", []):
+                    playlists.append(
+                        {
+                            "id": item.get("id"),
+                            "name": item.get("name"),
+                        }
+                    )
+
+                url = results.get("next")
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Error fetching user playlists from {url}: {e}")
+                break
+            except ValueError as e:
+                logger.error(f"Error decoding JSON from {url} for user playlists: {e}")
+                break
+        return playlists
 
     def get_playlist_tracks(self, playlist_id: str) -> list:
         response = requests.get(
