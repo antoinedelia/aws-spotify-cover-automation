@@ -3,7 +3,7 @@ service: spotify-cover-automation
 provider:
   name: aws
   stage: prod
-  runtime: python3.13
+  runtime: python3.12
   region: eu-west-1
 
 package:
