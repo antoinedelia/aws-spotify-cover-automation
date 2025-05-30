@@ -33,7 +33,7 @@ functions:
               - '*'
   get_playlists:
     handler: src/handlers/get_playlists.lambda_handler
-    name: ${sls:service}-${sls:stage}-get_playlists
+    name: ${self:service}-${sls:stage}-get_playlists
     timeout: 29
     maximumRetryAttempts: 1
     events:
