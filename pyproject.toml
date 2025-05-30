@@ -55,7 +55,7 @@ target-version = "py312"
 # flake8-bugbear (B)
 # flake8-simplify (SIM)
 select = ["F", "E4", "E7", "E9", "W", "S", "I", "B", "SIM", "PGH004"]
-ignore = [] # List any rules to be ignored, currently empty.
+ignore = ["S101"] # List any rules to be ignored, currently empty.
  
 # Allow auto-fixing of all enabled rules when using the `--fix` option.
 fixable = ["ALL"]

@@ -4,6 +4,7 @@ from src import spotify
 
 uri_test_cases = [
     ("https://open.spotify.com/playlist/0JP3smzah2mTnxIZIVjVX0?si=e33aaca9d1334dc6", "0JP3smzah2mTnxIZIVjVX0"),
+    ("https://open.spotify.com/playlist/0JP3smzah2mTnxIZIVjVX0", "0JP3smzah2mTnxIZIVjVX0"),
 ]
 
 
