@@ -27,9 +27,17 @@ class BackendStack(Stack):
             handler="lambda_handler",
         )
 
+        headers = [h for h in apigw.Cors.DEFAULT_HEADERS]
+        headers.append("X-Spotify-Token")
+
         api = apigw.RestApi(
             self,
             "SpotifyCoverAutomationAPI",
+            default_cors_preflight_options=apigw.CorsOptions(
+                allow_origins=apigw.Cors.ALL_ORIGINS,
+                allow_methods=apigw.Cors.ALL_METHODS,
+                allow_headers=headers,
+            ),
         )
 
         playlists_resource = api.root.add_resource("playlists")
