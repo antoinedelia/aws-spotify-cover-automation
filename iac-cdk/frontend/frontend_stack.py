@@ -18,9 +18,8 @@ class FrontendStack(Stack):
         # Get the existing hosted zone
         zone = route53.HostedZone.from_lookup(self, "HostedZone", domain_name=domain_name)
 
-        # Certificate in us-east-1 (required for CloudFront)
-        certificate = acm.DnsValidatedCertificate(
-            self, "SiteCertificate", domain_name=full_domain, hosted_zone=zone, region="us-east-1"
+        certificate = acm.Certificate(
+            self, "SiteCertificate", domain_name=full_domain, validation=acm.CertificateValidation.from_dns(zone)
         )
 
         # S3 Bucket (private)
@@ -40,7 +39,7 @@ class FrontendStack(Stack):
             "FrontendDistribution",
             default_root_object="index.html",
             certificate=certificate,
-            domain_names=full_domain,
+            domain_names=[full_domain],
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origins.S3BucketOrigin(bucket), viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
             ),
