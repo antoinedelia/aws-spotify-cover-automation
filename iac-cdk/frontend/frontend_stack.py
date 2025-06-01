@@ -64,5 +64,5 @@ class FrontendStack(Stack):
             target=route53.RecordTarget.from_alias(targets.CloudFrontTarget(distribution)),
         )
 
-        # Output the CloudFront URL
-        CfnOutput(self, "CloudFrontURL", value=distribution.distribution_domain_name, export_name="MyFrontendURL")
+        # Output the URL
+        CfnOutput(self, "WebsiteURL", value=f"https://{full_domain}", export_name="MyFrontendURL")
