@@ -40,6 +40,7 @@ class FrontendStack(Stack):
             "FrontendDistribution",
             default_root_object="index.html",
             certificate=certificate,
+            domain_names=full_domain,
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origins.S3BucketOrigin(bucket), viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
             ),
