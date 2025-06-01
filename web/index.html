@@ -96,7 +96,7 @@
             });
             const data = await res.json();
             playlistSelect.innerHTML = '';
-            data.items.forEach(pl => {
+            data.body.forEach(pl => {
                 const option = document.createElement('option');
                 option.value = pl.id;
                 option.textContent = pl.name;
