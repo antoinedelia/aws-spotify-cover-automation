@@ -20,7 +20,7 @@ def lambda_handler(event, context):
     body = event["body"]
 
     try:
-        access_token = event["headers"]["X-Spotify-Token"]
+        access_token = event["headers"].get("X-Spotify-Token") or event["headers"].get("x-spotify-token")
     except KeyError:
         return format_response("Token was not provided in the X-Spotify-Token header", 400)
 

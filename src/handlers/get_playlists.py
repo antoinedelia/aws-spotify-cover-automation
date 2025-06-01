@@ -5,7 +5,7 @@ from utils import format_response
 def lambda_handler(event, context):
     # Get the Spotify access token from the event data in the body key
     try:
-        access_token = event["headers"]["X-Spotify-Token"]
+        access_token = event["headers"].get("X-Spotify-Token") or event["headers"].get("x-spotify-token")
     except KeyError:
         return format_response("Token was not provided in the X-Spotify-Token header", 400)
 
