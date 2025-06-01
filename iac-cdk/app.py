@@ -15,6 +15,8 @@ BackendStack(
 frontend_acm_stack = FrontendAcmStack(
     app,
     "FrontendAcmStack",
+    domain_name="antoinedelia.fr",
+    subdomain="spotify-cover",
     env=cdk.Environment(account="646082475080", region="us-east-1"),
     cross_region_references=True,
 )
