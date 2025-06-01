@@ -1,7 +1,7 @@
 from loguru import logger
 
-from src.spotify import Spotify
-from src.utils import format_response
+from spotify import Spotify
+from utils import format_response
 
 
 def lambda_handler(event, context):
@@ -16,4 +16,4 @@ def lambda_handler(event, context):
 
     playlists_dict = [playlist.to_dict() for playlist in playlists]
 
-    return format_response("Updated playlist cover!", 200, playlists_dict)
+    return format_response(f"Retrieved {len(playlists_dict)} playlists!", 200, playlists_dict)
