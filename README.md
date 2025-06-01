@@ -16,3 +16,10 @@ $ export SPOTIPY_REDIRECT_URI="http://localhost:8080"
 
 $ python src/main.py
 ```
+
+## Docker configuration on WSL
+```sh
+sudo usermod -a -G docker $USER
+grep docker /etc/group
+newgrp docker
+```
