@@ -39,7 +39,7 @@ class FrontendStack(Stack):
             certificate=certificate,
             domain_names=[full_domain],
             default_behavior=cloudfront.BehaviorOptions(
-                origin=origins.S3StaticWebsiteOrigin(bucket),
+                origin=origins.S3BucketOrigin.with_origin_access_control(bucket),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
             ),
         )
