@@ -39,10 +39,6 @@ jobs:
         role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
         aws-region: eu-west-1
 
-    - name: Check CDK Diff
-      working-directory: iac-cdk
-      run: cdk diff
-
     - name: Deploy CDK Stack
       working-directory: iac-cdk
       run: cdk deploy --require-approval never
