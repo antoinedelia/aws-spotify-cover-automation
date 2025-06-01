@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
 import aws_cdk as cdk
-from iac_cdk.iac_cdk_stack import IacCdkStack
+from backend.backend_stack import BackendStack
 
 app = cdk.App()
-IacCdkStack(
+BackendStack(
     app,
-    "IacCdkStack",
+    "BackendStack",
     env=cdk.Environment(account="646082475080", region="eu-west-1"),
 )
 
