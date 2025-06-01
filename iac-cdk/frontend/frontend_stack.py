@@ -19,7 +19,7 @@ class FrontendStack(Stack):
         zone = route53.HostedZone.from_lookup(self, "HostedZone", domain_name=domain_name)
 
         certificate = acm.Certificate(
-            self, "SiteCertificate", domain_name=full_domain, validation=acm.CertificateValidation.from_dns(zone)
+            self, "Certificate", domain_name=full_domain, validation=acm.CertificateValidation.from_dns(zone)
         )
 
         # S3 Bucket (private)
