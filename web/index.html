@@ -91,7 +91,9 @@
         };
 
         fetchBtn.onclick = async () => {
+            console.log(token)
             const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
+                method: "GET",
                 headers: { 'X-Spotify-Token': token }
             });
             const data = await res.json();
