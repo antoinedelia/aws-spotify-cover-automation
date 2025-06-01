@@ -19,8 +19,15 @@ def lambda_handler(event, context):
     logger.info(event)
     body = event["body"]
 
-    access_token = event["headers"]["X-Spotify-Token"]
-    playlist_id = json.loads(body)["playlist_id"]
+    try:
+        access_token = event["headers"]["X-Spotify-Token"]
+    except KeyError:
+        return format_response("Token was not provided in the X-Spotify-Token header", 400)
+
+    try:
+        playlist_id = json.loads(body)["playlist_id"]
+    except KeyError:
+        return format_response("Playlist id was not provided in the payload", 400)
 
     spotify = Spotify(access_token)
     playlist_name = spotify.get_playlist_name(playlist_id)

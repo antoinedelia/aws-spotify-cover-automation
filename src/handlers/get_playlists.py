@@ -1,13 +1,13 @@
-from loguru import logger
-
 from spotify import Spotify
 from utils import format_response
 
 
 def lambda_handler(event, context):
     # Get the Spotify access token from the event data in the body key
-    logger.info(event)
-    access_token = event["headers"]["X-Spotify-Token"]
+    try:
+        access_token = event["headers"]["X-Spotify-Token"]
+    except KeyError:
+        return format_response("Token was not provided in the X-Spotify-Token header", 400)
 
     spotify = Spotify(access_token)
 
