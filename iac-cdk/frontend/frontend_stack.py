@@ -35,7 +35,7 @@ class FrontendStack(Stack):
             "FrontendDistribution",
             default_root_object="index.html",
             default_behavior=cloudfront.BehaviorOptions(
-                origin=origins.S3Origin(bucket), viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+                origin=origins.S3BucketOrigin(bucket), viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS
             ),
         )
 
@@ -43,7 +43,7 @@ class FrontendStack(Stack):
         s3deploy.BucketDeployment(
             self,
             "DeployFrontend",
-            sources=[s3deploy.Source.asset("../frontend/dist")],  # Adjust path if needed
+            sources=[s3deploy.Source.asset("../web")],
             destination_bucket=bucket,
             distribution=distribution,
             distribution_paths=["/*"],  # Invalidate CloudFront cache
