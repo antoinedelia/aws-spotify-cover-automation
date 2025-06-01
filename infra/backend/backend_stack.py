@@ -1,4 +1,4 @@
-from aws_cdk import Stack
+from aws_cdk import Duration, Stack
 from aws_cdk import aws_apigateway as apigw
 from aws_cdk import aws_lambda as _lambda
 from aws_cdk import aws_lambda_python_alpha as lambda_python
@@ -16,6 +16,7 @@ class BackendStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_13,
             index="handlers/get_playlists.py",
             handler="lambda_handler",
+            timeout=Duration.seconds(29),
         )
 
         generate_cover_function = lambda_python.PythonFunction(
@@ -25,6 +26,7 @@ class BackendStack(Stack):
             runtime=_lambda.Runtime.PYTHON_3_13,
             index="handlers/main.py",
             handler="lambda_handler",
+            timeout=Duration.seconds(29),
         )
 
         headers = [h for h in apigw.Cors.DEFAULT_HEADERS]

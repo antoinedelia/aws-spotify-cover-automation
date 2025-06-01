@@ -16,7 +16,6 @@ IMAGE_SIZE = ARTIST_IMAGE_SIZE * 2
 
 def lambda_handler(event, context):
     # Get the Spotify access token from the event data in the body key
-    logger.info(event)
     body = event["body"]
 
     try:
@@ -41,8 +40,8 @@ def lambda_handler(event, context):
 
     artists = []
     for track in tracks:
-        for artist in track["artists"]:
-            artists.append({"id": artist["id"], "name": artist["name"]})
+        for artist in track.artists:
+            artists.append({"id": artist.id, "name": artist.name})
 
     playlist_cover = Image.new("RGB", (IMAGE_SIZE, IMAGE_SIZE))
 
