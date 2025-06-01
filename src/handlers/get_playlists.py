@@ -11,7 +11,11 @@ def lambda_handler(event, context):
 
     spotify = Spotify(access_token)
 
-    user_id = spotify.get_user_id()
+    try:
+        user_id = spotify.get_user_id()
+    except Exception as e:
+        return format_response("Error while trying to get playlists", 500, str(e))
+
     playlists = spotify.get_user_playlists(user_id)
 
     playlists_dict = [playlist.to_dict() for playlist in playlists]

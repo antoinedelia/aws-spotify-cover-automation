@@ -29,6 +29,8 @@ class Spotify:
         r = requests.get("https://api.spotify.com/v1/me", headers=self.headers, timeout=5)
         if r.ok:
             return r.json()["id"]
+        else:
+            raise Exception(f"Error fetching user id: {r.json()['error']['message']}")
 
     def get_user_playlists(self, user_id: str, limit: int = 10) -> list[SpotifyPlaylist]:
         playlists: list[SpotifyPlaylist] = []
