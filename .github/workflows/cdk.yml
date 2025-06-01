@@ -41,4 +41,4 @@ jobs:
 
     - name: Deploy CDK Stack
       working-directory: iac-cdk
-      run: cdk deploy --require-approval never
+      run: cdk deploy --all --require-approval never
