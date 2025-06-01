@@ -76,7 +76,7 @@ def lambda_handler(event, context):
 
     # Adding the text
     draw = ImageDraw.Draw(playlist_cover)
-    font = ImageFont.truetype("./src/fonts/Montserrat-Bold.ttf", 120)
+    font = ImageFont.truetype("./fonts/Montserrat-Bold.ttf", 120)
     draw.text(
         xy=(ARTIST_IMAGE_SIZE, IMAGE_SIZE - 50),
         text=playlist.name,
