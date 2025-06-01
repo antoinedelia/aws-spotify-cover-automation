@@ -1,26 +1,24 @@
 from aws_cdk import CfnOutput, RemovalPolicy, Stack
-from aws_cdk import aws_certificatemanager as acm
 from aws_cdk import aws_cloudfront as cloudfront
 from aws_cdk import aws_cloudfront_origins as origins
 from aws_cdk import aws_route53 as route53
 from aws_cdk import aws_route53_targets as targets
 from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_s3_deployment as s3deploy
+from aws_cdk.aws_certificatemanager import Certificate
 from constructs import Construct
 
 
 class FrontendStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, domain_name: str, subdomain: str, **kwargs) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, domain_name: str, subdomain: str, certificate: Certificate, **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         full_domain = f"{subdomain}.{domain_name}"
 
         # Get the existing hosted zone
         zone = route53.HostedZone.from_lookup(self, "HostedZone", domain_name=domain_name)
-
-        certificate = acm.Certificate(
-            self, "Certificate", domain_name=full_domain, validation=acm.CertificateValidation.from_dns(zone)
-        )
 
         # S3 Bucket (private)
         bucket = s3.Bucket(
