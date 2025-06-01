@@ -54,7 +54,7 @@ def lambda_handler(event, context):
 
         image_response = requests.get(image_url, timeout=5)
         img = Image.open(BytesIO(image_response.content))
-        img.thumbnail((ARTIST_IMAGE_SIZE, ARTIST_IMAGE_SIZE), Image.ANTIALIAS)
+        img.thumbnail((ARTIST_IMAGE_SIZE, ARTIST_IMAGE_SIZE), Image.LANCZOS)
         x = index % 2 * ARTIST_IMAGE_SIZE
         y = index // 2 * ARTIST_IMAGE_SIZE
         w, h = img.size
@@ -90,7 +90,7 @@ def lambda_handler(event, context):
     playlist_cover = playlist_cover.convert("RGB")
 
     # Reduce the size of the image
-    playlist_cover.thumbnail((ARTIST_IMAGE_SIZE, ARTIST_IMAGE_SIZE), Image.ANTIALIAS)
+    playlist_cover.thumbnail((ARTIST_IMAGE_SIZE, ARTIST_IMAGE_SIZE), Image.LANCZOS)
 
     logger.info("Updating playlist cover...")
     buffered = BytesIO()
