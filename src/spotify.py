@@ -113,11 +113,14 @@ class Spotify:
         return response.json()["images"][0]["url"]
 
     def update_playlist_cover_image(self, playlist_id: str, image) -> None:
-        self.headers["Content-Type"] = "image/jpeg"
-        response = requests.put(
+        headers = self.headers
+        headers["Content-Type"] = "image/jpeg"
+        r = requests.put(
             f"https://api.spotify.com/v1/playlists/{playlist_id}/images",
-            headers=self.headers,
+            headers=headers,
             data=image,
             timeout=10,
         )
-        logger.info(response.status_code)
+        logger.info(r.status_code)
+        if not r.ok:
+            logger.error(f"Could not update playlist cover image with error: {r.status_code}")
