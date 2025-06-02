@@ -2,7 +2,7 @@ name: Deploy to AWS
 
 on:
   push:
-    branches: [main, cdk]
+    branches: [master]
 
 permissions:
   id-token: write
