@@ -48,7 +48,7 @@
             border: none;
             font-size: 1rem;
             margin: 1rem 0;
-            min-width: 200px; /* Ensure select has some width */
+            min-width: 200px;
         }
 
         #app {
@@ -56,23 +56,69 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 500px; /* Limit width of the app container */
+            max-width: 500px;
         }
 
         #controls {
-            display: none; /* Initially hidden */
+            display: none;
             flex-direction: column;
             align-items: center;
             width: 100%;
         }
 
         #playlistCoverImage {
-            display: none; /* Initially hidden */
+            display: none;
             max-width: 300px;
             max-height: 300px;
             margin-top: 1rem;
             border: 1px solid #333;
             border-radius: 4px;
+        }
+
+        /* Loading Spinner Styles */
+        #loadingSpinner {
+            display: none; /* Hidden by default */
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #1db954; /* Spotify green */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Message Styles */
+        #statusMessage {
+            display: none; /* Hidden by default */
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        #statusMessage.success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        #statusMessage.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        #statusMessage.info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
         }
     </style>
 </head>
@@ -81,6 +127,10 @@
     <h1>Spotify Cover Updater</h1>
     <div id="app">
         <button id="loginBtn">Login with Spotify</button>
+
+        <div id="loadingSpinner"></div>
+        <p id="statusMessage"></p>
+
         <div id="controls">
             <button id="fetchBtn">Fetch My Playlists</button><br />
             <select id="playlistSelect"></select><br />
@@ -101,6 +151,29 @@
         const playlistSelect = document.getElementById('playlistSelect');
         const updateBtn = document.getElementById('updateBtn');
         const playlistCoverImage = document.getElementById('playlistCoverImage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusMessage = document.getElementById('statusMessage');
+
+        function showLoading() {
+            loadingSpinner.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loadingSpinner.style.display = 'none';
+        }
+
+        function showStatusMessage(message, type = 'info') { // Default type 'info'
+            statusMessage.textContent = message;
+            statusMessage.className = ''; // Clear existing classes
+            statusMessage.classList.add(type); // Add new type class (success, error, info)
+            statusMessage.style.display = 'block';
+        }
+
+        function clearStatusMessage() {
+            statusMessage.textContent = '';
+            statusMessage.style.display = 'none';
+            statusMessage.className = '';
+        }
 
         function getHashParams() {
             const hash = window.location.hash.substring(1);
@@ -119,9 +192,12 @@
 
         fetchBtn.onclick = async () => {
             if (!token) {
-                alert('Authentication token is missing. Please log in again.');
+                showStatusMessage('Authentication token is missing. Please log in again.', 'error');
                 return;
             }
+            showLoading();
+            clearStatusMessage();
+            playlistSelect.innerHTML = ''; // Clear previous options
             try {
                 const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
                     headers: { 'X-Spotify-Token': token }
@@ -130,7 +206,6 @@
                     throw new Error(`Failed to fetch playlists: ${res.status} ${res.statusText}`);
                 }
                 const data = await res.json();
-                playlistSelect.innerHTML = '';
                 if (data.body && data.body.length > 0) {
                     data.body.forEach(pl => {
                         const option = document.createElement('option');
@@ -138,30 +213,35 @@
                         option.textContent = pl.name;
                         playlistSelect.appendChild(option);
                     });
+                    showStatusMessage('Playlists fetched successfully!', 'success');
                 } else {
                     const option = document.createElement('option');
                     option.textContent = 'No playlists found';
                     option.disabled = true;
                     playlistSelect.appendChild(option);
+                    showStatusMessage('No playlists found.', 'info');
                 }
             } catch (error) {
                 console.error('Error fetching playlists:', error);
-                alert('Error fetching playlists: ' + error.message);
+                showStatusMessage('Error fetching playlists: ' + error.message, 'error');
+            } finally {
+                hideLoading();
             }
         };
 
         updateBtn.onclick = async () => {
             const playlistId = playlistSelect.value;
-            if (!playlistId) {
-                alert('Please select a playlist first.');
+            if (!playlistId || playlistSelect.selectedOptions[0]?.disabled) { // Check if a valid playlist is selected
+                showStatusMessage('Please select a valid playlist first.', 'info');
                 return;
             }
             if (!token) {
-                alert('Authentication token is missing. Please log in again.');
+                showStatusMessage('Authentication token is missing. Please log in again.', 'error');
                 return;
             }
 
-            // Hide previous image and show a loading state
+            showLoading();
+            clearStatusMessage();
             playlistCoverImage.style.display = 'none';
             playlistCoverImage.src = '';
 
@@ -176,29 +256,30 @@
                 });
 
                 if (res.ok) {
-                    const responseData = await res.json(); // This is your 'result' object
-                    const base64ImageString = responseData.body.playlist_cover_b64;
+                    const responseData = await res.json();
+                    const base64ImageString = responseData.playlist_cover_b64;
 
                     if (base64ImageString) {
                         playlistCoverImage.src = 'data:image/jpeg;base64,' + base64ImageString;
-                        playlistCoverImage.style.display = 'block'; // Make the image visible
-                        alert('Cover updated and displayed successfully!');
-                        console.log("Playlist Name:", responseData.body.playlist_name);
-                        console.log("Artists:", responseData.body.artists);
+                        playlistCoverImage.style.display = 'block';
+                        showStatusMessage('Cover updated and displayed successfully!', 'success');
                     } else {
-                        alert('Cover updated, but no image data was returned.');
+                        showStatusMessage('Cover updated, but no image data was returned.', 'info');
                     }
                 } else {
                     const errorText = await res.text();
-                    alert('Something went wrong while updating the cover: ' + errorText);
+                    showStatusMessage('Error updating cover: ' + errorText, 'error');
                 }
             } catch (error) {
                 console.error('Error updating cover:', error);
-                alert('Error updating cover: ' + error.message);
+                showStatusMessage('Failed to update cover: ' + error.message, 'error');
+            } finally {
+                hideLoading();
             }
         };
 
         window.onload = () => {
+            clearStatusMessage();
             const params = getHashParams();
             if (params.access_token) {
                 token = params.access_token;
