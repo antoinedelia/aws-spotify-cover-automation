@@ -18,6 +18,7 @@
             justify-content: flex-start;
             min-height: 100vh;
             padding: 2rem;
+            box-sizing: border-box;
         }
 
         h1 {
@@ -47,6 +48,31 @@
             border: none;
             font-size: 1rem;
             margin: 1rem 0;
+            min-width: 200px; /* Ensure select has some width */
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px; /* Limit width of the app container */
+        }
+
+        #controls {
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        #playlistCoverImage {
+            display: none; /* Initially hidden */
+            max-width: 300px;
+            max-height: 300px;
+            margin-top: 1rem;
+            border: 1px solid #333;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -55,11 +81,11 @@
     <h1>Spotify Cover Updater</h1>
     <div id="app">
         <button id="loginBtn">Login with Spotify</button>
-        <div id="controls"
-             style="display: none;">
+        <div id="controls">
             <button id="fetchBtn">Fetch My Playlists</button><br />
             <select id="playlistSelect"></select><br />
             <button id="updateBtn">Update Cover</button>
+            <img id="playlistCoverImage" alt="Playlist Cover" />
         </div>
     </div>
 
@@ -74,6 +100,7 @@
         const fetchBtn = document.getElementById('fetchBtn');
         const playlistSelect = document.getElementById('playlistSelect');
         const updateBtn = document.getElementById('updateBtn');
+        const playlistCoverImage = document.getElementById('playlistCoverImage');
 
         function getHashParams() {
             const hash = window.location.hash.substring(1);
@@ -82,7 +109,7 @@
 
         function showControls() {
             loginBtn.style.display = 'none';
-            controls.style.display = 'block';
+            controls.style.display = 'flex';
         }
 
         loginBtn.onclick = () => {
@@ -91,37 +118,86 @@
         };
 
         fetchBtn.onclick = async () => {
-            const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
-                headers: { 'X-Spotify-Token': token }
-            });
-            const data = await res.json();
-            playlistSelect.innerHTML = '';
-            data.body.forEach(pl => {
-                const option = document.createElement('option');
-                option.value = pl.id;
-                option.textContent = pl.name;
-                playlistSelect.appendChild(option);
-            });
+            if (!token) {
+                alert('Authentication token is missing. Please log in again.');
+                return;
+            }
+            try {
+                const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
+                    headers: { 'X-Spotify-Token': token }
+                });
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch playlists: ${res.status} ${res.statusText}`);
+                }
+                const data = await res.json();
+                playlistSelect.innerHTML = '';
+                if (data.body && data.body.length > 0) {
+                    data.body.forEach(pl => {
+                        const option = document.createElement('option');
+                        option.value = pl.id;
+                        option.textContent = pl.name;
+                        playlistSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.textContent = 'No playlists found';
+                    option.disabled = true;
+                    playlistSelect.appendChild(option);
+                }
+            } catch (error) {
+                console.error('Error fetching playlists:', error);
+                alert('Error fetching playlists: ' + error.message);
+            }
         };
 
         updateBtn.onclick = async () => {
             const playlistId = playlistSelect.value;
-            const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/cover', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Spotify-Token': token
-                },
-                body: JSON.stringify({ playlist_id: playlistId })
-            });
-            if (res.ok) {
-                alert('Cover updated successfully!');
-            } else {
-                alert('Something went wrong.');
+            if (!playlistId) {
+                alert('Please select a playlist first.');
+                return;
+            }
+            if (!token) {
+                alert('Authentication token is missing. Please log in again.');
+                return;
+            }
+
+            // Hide previous image and show a loading state
+            playlistCoverImage.style.display = 'none';
+            playlistCoverImage.src = '';
+
+            try {
+                const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/cover', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Spotify-Token': token
+                    },
+                    body: JSON.stringify({ playlist_id: playlistId })
+                });
+
+                if (res.ok) {
+                    const responseData = await res.json(); // This is your 'result' object
+                    const base64ImageString = responseData.body.playlist_cover_b64;
+
+                    if (base64ImageString) {
+                        playlistCoverImage.src = 'data:image/jpeg;base64,' + base64ImageString;
+                        playlistCoverImage.style.display = 'block'; // Make the image visible
+                        alert('Cover updated and displayed successfully!');
+                        console.log("Playlist Name:", responseData.body.playlist_name);
+                        console.log("Artists:", responseData.body.artists);
+                    } else {
+                        alert('Cover updated, but no image data was returned.');
+                    }
+                } else {
+                    const errorText = await res.text();
+                    alert('Something went wrong while updating the cover: ' + errorText);
+                }
+            } catch (error) {
+                console.error('Error updating cover:', error);
+                alert('Error updating cover: ' + error.message);
             }
         };
 
-        // Init
         window.onload = () => {
             const params = getHashParams();
             if (params.access_token) {
