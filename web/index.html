@@ -77,9 +77,9 @@
 
         /* Loading Spinner Styles */
         #loadingSpinner {
-            display: none; /* Hidden by default */
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #1db954; /* Spotify green */
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1db954;
             border-radius: 50%;
             width: 30px;
             height: 30px;
@@ -94,7 +94,7 @@
 
         /* Status Message Styles */
         #statusMessage {
-            display: none; /* Hidden by default */
+            display: none;
             width: 100%;
             margin-top: 1rem;
             padding: 0.75rem;
@@ -120,6 +120,34 @@
             background-color: #d1ecf1;
             border: 1px solid #bee5eb;
         }
+
+        /* Playlist Artists Styles */
+        #playlistArtistsContainer {
+            width: 100%;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        #playlistArtistsTitle {
+            display: none; /* Hidden by default */
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 0.5em;
+            color: #ffffff;
+        }
+
+        #playlistArtistsList {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0 auto;
+            max-width: 280px; /* Adjust as needed */
+        }
+
+        #playlistArtistsList li {
+            margin-bottom: 0.3rem;
+            font-size: 0.95rem;
+            color: #b3b3b3; /* Lighter grey for artist names */
+        }
     </style>
 </head>
 
@@ -136,6 +164,11 @@
             <select id="playlistSelect"></select><br />
             <button id="updateBtn">Update Cover</button>
             <img id="playlistCoverImage" alt="Playlist Cover" />
+            
+            <div id="playlistArtistsContainer">
+                <div id="playlistArtistsTitle">Top Artists:</div>
+                <ul id="playlistArtistsList"></ul>
+            </div>
         </div>
     </div>
 
@@ -153,6 +186,12 @@
         const playlistCoverImage = document.getElementById('playlistCoverImage');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const statusMessage = document.getElementById('statusMessage');
+        
+        // Elements for artists display
+        const playlistArtistsContainer = document.getElementById('playlistArtistsContainer');
+        const playlistArtistsTitle = document.getElementById('playlistArtistsTitle');
+        const playlistArtistsList = document.getElementById('playlistArtistsList');
+
 
         function showLoading() {
             loadingSpinner.style.display = 'block';
@@ -162,10 +201,10 @@
             loadingSpinner.style.display = 'none';
         }
 
-        function showStatusMessage(message, type = 'info') { // Default type 'info'
+        function showStatusMessage(message, type = 'info') {
             statusMessage.textContent = message;
-            statusMessage.className = ''; // Clear existing classes
-            statusMessage.classList.add(type); // Add new type class (success, error, info)
+            statusMessage.className = '';
+            statusMessage.classList.add(type);
             statusMessage.style.display = 'block';
         }
 
@@ -197,7 +236,7 @@
             }
             showLoading();
             clearStatusMessage();
-            playlistSelect.innerHTML = ''; // Clear previous options
+            playlistSelect.innerHTML = '';
             try {
                 const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
                     headers: { 'X-Spotify-Token': token }
@@ -231,7 +270,7 @@
 
         updateBtn.onclick = async () => {
             const playlistId = playlistSelect.value;
-            if (!playlistId || playlistSelect.selectedOptions[0]?.disabled) { // Check if a valid playlist is selected
+            if (!playlistId || playlistSelect.selectedOptions[0]?.disabled) {
                 showStatusMessage('Please select a valid playlist first.', 'info');
                 return;
             }
@@ -242,8 +281,13 @@
 
             showLoading();
             clearStatusMessage();
+            
+            // Clear previous results
             playlistCoverImage.style.display = 'none';
             playlistCoverImage.src = '';
+            playlistArtistsTitle.style.display = 'none';
+            playlistArtistsList.innerHTML = '';
+
 
             try {
                 const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/cover', {
@@ -257,15 +301,36 @@
 
                 if (res.ok) {
                     const responseData = await res.json();
-                    const base64ImageString = responseData.playlist_cover_b64;
+                    const base64ImageString = responseData.body.playlist_cover_b64;
+                    const artists = responseData.body.artists; // Get artists array
+                    // const playlistName = responseData.playlist_name; // Also available if needed
+
+                    let message = 'Cover updated successfully!';
+                    let messageType = 'success';
 
                     if (base64ImageString) {
                         playlistCoverImage.src = 'data:image/jpeg;base64,' + base64ImageString;
                         playlistCoverImage.style.display = 'block';
-                        showStatusMessage('Cover updated and displayed successfully!', 'success');
                     } else {
-                        showStatusMessage('Cover updated, but no image data was returned.', 'info');
+                        message = 'Cover updated, but no image data was returned.';
+                        messageType = 'info';
                     }
+
+                    // Display artists
+                    if (artists && artists.length > 0) {
+                        playlistArtistsTitle.style.display = 'block'; // Show "Top Artists:" title
+                        artists.forEach(artistText => {
+                            const li = document.createElement('li');
+                            li.textContent = artistText;
+                            playlistArtistsList.appendChild(li);
+                        });
+                         if (base64ImageString) message += " Top artists also displayed."; // Append to existing message
+                    } else {
+                        if (base64ImageString) message += " No artist information returned.";
+                        else message += " No artist information returned."; // If no image either
+                    }
+                    showStatusMessage(message, messageType);
+
                 } else {
                     const errorText = await res.text();
                     showStatusMessage('Error updating cover: ' + errorText, 'error');
