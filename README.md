@@ -3,7 +3,7 @@
 <p align="center"><b>Elevate your Spotify playlists with unique, automatically generated cover art!</b> ✨</p>
 
 <p align="center">
-  <img width="450" alt="image" src="https://github.com/user-attachments/assets/7619df37-6eb5-4313-bbb3-8d9020c06693" />
+  <img width="450" alt="Spotify Cover Automation website overview" src="https://github.com/user-attachments/assets/22742256-38b3-4d91-be93-afeba6dbf3a0" />
 </p>
 
 
