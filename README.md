@@ -32,8 +32,7 @@ This project leverages a modern, cloud-native architecture:
     * Amazon API Gateway (for API exposure)
     * Amazon S3 (for hosting the static frontend and potentially temporary image storage)
     * Amazon CloudFront (for content delivery and HTTPS)
-    * AWS IAM (for secure access management)
-    * AWS Cloud Development Kit (CDK) (for defining and deploying cloud infrastructure in TypeScript/Python)
+    * AWS Cloud Development Kit (CDK) (for defining and deploying cloud infrastructure in Python)
 * **Spotify API:** Used for accessing playlist data, artist information, and updating playlist cover images.
 
 ## 🚀 Getting Started (For Users)
@@ -53,7 +52,4 @@ Interested in contributing or running your own instance? Here's a general guide:
 * [Node.js](https://nodejs.org/) (v18.x or later recommended)
 * [AWS CLI](https://aws.amazon.com/cli/) configured with your credentials
 * [AWS CDK](https://aws.amazon.com/cdk/) ( `npm install -g aws-cdk` )
-* A Spotify Developer Account and App (to get your Client ID and Client Secret, and to set the Redirect URI) - [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
-
-## 📜 License
-This project is licensed under the MIT License. See the LICENSE file for details.
+* A Spotify Developer Account and App (to get your Client ID, and to set the Redirect URI) - [Spotify Developer Dashboard](https://developer.spotify.com/dashboard/)
