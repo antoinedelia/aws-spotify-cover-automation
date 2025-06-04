@@ -18,6 +18,7 @@
             justify-content: flex-start;
             min-height: 100vh;
             padding: 2rem;
+            box-sizing: border-box;
         }
 
         h1 {
@@ -47,6 +48,105 @@
             border: none;
             font-size: 1rem;
             margin: 1rem 0;
+            min-width: 200px;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        #controls {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        #playlistCoverImage {
+            display: none;
+            max-width: 300px;
+            max-height: 300px;
+            margin-top: 1rem;
+            border: 1px solid #333;
+            border-radius: 4px;
+        }
+
+        /* Loading Spinner Styles */
+        #loadingSpinner {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #1db954;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Message Styles */
+        #statusMessage {
+            display: none;
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        #statusMessage.success {
+            color: #155724;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+
+        #statusMessage.error {
+            color: #721c24;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+
+        #statusMessage.info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Playlist Artists Styles */
+        #playlistArtistsContainer {
+            width: 100%;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        #playlistArtistsTitle {
+            display: none; /* Hidden by default */
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 0.5em;
+            color: #ffffff;
+        }
+
+        #playlistArtistsList {
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0 auto;
+            max-width: 280px; /* Adjust as needed */
+        }
+
+        #playlistArtistsList li {
+            margin-bottom: 0.3rem;
+            font-size: 0.95rem;
+            color: #b3b3b3; /* Lighter grey for artist names */
         }
     </style>
 </head>
@@ -55,11 +155,20 @@
     <h1>Spotify Cover Updater</h1>
     <div id="app">
         <button id="loginBtn">Login with Spotify</button>
-        <div id="controls"
-             style="display: none;">
+
+        <div id="loadingSpinner"></div>
+        <p id="statusMessage"></p>
+
+        <div id="controls">
             <button id="fetchBtn">Fetch My Playlists</button><br />
             <select id="playlistSelect"></select><br />
             <button id="updateBtn">Update Cover</button>
+            <img id="playlistCoverImage" alt="Playlist Cover" />
+            
+            <div id="playlistArtistsContainer">
+                <div id="playlistArtistsTitle">Top Artists:</div>
+                <ul id="playlistArtistsList"></ul>
+            </div>
         </div>
     </div>
 
@@ -74,6 +183,36 @@
         const fetchBtn = document.getElementById('fetchBtn');
         const playlistSelect = document.getElementById('playlistSelect');
         const updateBtn = document.getElementById('updateBtn');
+        const playlistCoverImage = document.getElementById('playlistCoverImage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // Elements for artists display
+        const playlistArtistsContainer = document.getElementById('playlistArtistsContainer');
+        const playlistArtistsTitle = document.getElementById('playlistArtistsTitle');
+        const playlistArtistsList = document.getElementById('playlistArtistsList');
+
+
+        function showLoading() {
+            loadingSpinner.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loadingSpinner.style.display = 'none';
+        }
+
+        function showStatusMessage(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = '';
+            statusMessage.classList.add(type);
+            statusMessage.style.display = 'block';
+        }
+
+        function clearStatusMessage() {
+            statusMessage.textContent = '';
+            statusMessage.style.display = 'none';
+            statusMessage.className = '';
+        }
 
         function getHashParams() {
             const hash = window.location.hash.substring(1);
@@ -82,7 +221,7 @@
 
         function showControls() {
             loginBtn.style.display = 'none';
-            controls.style.display = 'block';
+            controls.style.display = 'flex';
         }
 
         loginBtn.onclick = () => {
@@ -91,38 +230,121 @@
         };
 
         fetchBtn.onclick = async () => {
-            const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
-                headers: { 'X-Spotify-Token': token }
-            });
-            const data = await res.json();
+            if (!token) {
+                showStatusMessage('Authentication token is missing. Please log in again.', 'error');
+                return;
+            }
+            showLoading();
+            clearStatusMessage();
             playlistSelect.innerHTML = '';
-            data.body.forEach(pl => {
-                const option = document.createElement('option');
-                option.value = pl.id;
-                option.textContent = pl.name;
-                playlistSelect.appendChild(option);
-            });
+            try {
+                const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/playlists', {
+                    headers: { 'X-Spotify-Token': token }
+                });
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch playlists: ${res.status} ${res.statusText}`);
+                }
+                const data = await res.json();
+                if (data.body && data.body.length > 0) {
+                    data.body.forEach(pl => {
+                        const option = document.createElement('option');
+                        option.value = pl.id;
+                        option.textContent = pl.name;
+                        playlistSelect.appendChild(option);
+                    });
+                    showStatusMessage('Playlists fetched successfully!', 'success');
+                } else {
+                    const option = document.createElement('option');
+                    option.textContent = 'No playlists found';
+                    option.disabled = true;
+                    playlistSelect.appendChild(option);
+                    showStatusMessage('No playlists found.', 'info');
+                }
+            } catch (error) {
+                console.error('Error fetching playlists:', error);
+                showStatusMessage('Error fetching playlists: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
         };
 
         updateBtn.onclick = async () => {
             const playlistId = playlistSelect.value;
-            const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/cover', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Spotify-Token': token
-                },
-                body: JSON.stringify({ playlist_id: playlistId })
-            });
-            if (res.ok) {
-                alert('Cover updated successfully!');
-            } else {
-                alert('Something went wrong.');
+            if (!playlistId || playlistSelect.selectedOptions[0]?.disabled) {
+                showStatusMessage('Please select a valid playlist first.', 'info');
+                return;
+            }
+            if (!token) {
+                showStatusMessage('Authentication token is missing. Please log in again.', 'error');
+                return;
+            }
+
+            showLoading();
+            clearStatusMessage();
+            
+            // Clear previous results
+            playlistCoverImage.style.display = 'none';
+            playlistCoverImage.src = '';
+            playlistArtistsTitle.style.display = 'none';
+            playlistArtistsList.innerHTML = '';
+
+
+            try {
+                const res = await fetch('https://y70tamiryi.execute-api.eu-west-1.amazonaws.com/prod/cover', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Spotify-Token': token
+                    },
+                    body: JSON.stringify({ playlist_id: playlistId })
+                });
+
+                if (res.ok) {
+                    const responseData = await res.json();
+                    const base64ImageString = responseData.body.playlist_cover_b64;
+                    const artists = responseData.body.artists; // Get artists array
+                    // const playlistName = responseData.playlist_name; // Also available if needed
+
+                    let message = 'Cover updated successfully!';
+                    let messageType = 'success';
+
+                    if (base64ImageString) {
+                        playlistCoverImage.src = 'data:image/jpeg;base64,' + base64ImageString;
+                        playlistCoverImage.style.display = 'block';
+                    } else {
+                        message = 'Cover updated, but no image data was returned.';
+                        messageType = 'info';
+                    }
+
+                    // Display artists
+                    if (artists && artists.length > 0) {
+                        playlistArtistsTitle.style.display = 'block'; // Show "Top Artists:" title
+                        artists.forEach(artistText => {
+                            const li = document.createElement('li');
+                            li.textContent = artistText;
+                            playlistArtistsList.appendChild(li);
+                        });
+                         if (base64ImageString) message += " Top artists also displayed."; // Append to existing message
+                    } else {
+                        if (base64ImageString) message += " No artist information returned.";
+                        else message += " No artist information returned."; // If no image either
+                    }
+                    showStatusMessage(message, messageType);
+
+                } else {
+                    const errorText = await res.text();
+                    showStatusMessage('Error updating cover: ' + errorText, 'error');
+                }
+            } catch (error) {
+                console.error('Error updating cover:', error);
+                showStatusMessage('Failed to update cover: ' + error.message, 'error');
+            } finally {
+                hideLoading();
             }
         };
 
-        // Init
         window.onload = () => {
+            clearStatusMessage();
             const params = getHashParams();
             if (params.access_token) {
                 token = params.access_token;
