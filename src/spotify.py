@@ -2,7 +2,7 @@ from dataclasses import asdict, dataclass
 
 import requests
 from loguru import logger
-
+from typing import Any, Optional
 
 @dataclass
 class SpotifyPlaylist:
@@ -27,10 +27,43 @@ class SpotifyTrack:
 
 
 class Spotify:
-    def __init__(self, access_token) -> None:
-        self.token = access_token
-        self.headers = {"Authorization": f"Bearer {self.token}"}
+    BASE_URL = "https://api.spotify.com/v1"
 
+    def __init__(self, access_token: str) -> None:
+        self.token = access_token
+        self._headers = {"Authorization": f"Bearer {self.token}"}
+
+    def _request(self, method: str, url: str, **kwargs: Any) -> Optional[requests.Response]:
+        """
+        A centralized method to make HTTP requests and handle common errors.
+        
+        Args:
+            method: The HTTP method to use (e.g., "GET", "POST", "PUT").
+            url: The full URL for the request.
+            **kwargs: Additional keyword arguments to pass to requests (e.g., params, data, json, headers).
+
+        Returns:
+            A requests.Response object if successful, None otherwise.
+        """
+        headers = {**self._headers, **kwargs.pop("headers", {})}
+        
+        try:
+            response = requests.request(
+                method,
+                url,
+                headers=headers,
+                timeout=kwargs.pop("timeout", 10),
+                **kwargs
+            )
+            response.raise_for_status()
+            return response
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"HTTP Error {e.response.status_code} for {method} {url}: {e.response.text}")
+            raise
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Request failed for {method} {url}: {e}")
+            raise
+            
     @staticmethod
     def get_playlist_id_from_uri(uri: str) -> str:
         playlist_id = uri.split("/")[-1]
@@ -39,20 +72,18 @@ class Spotify:
         return playlist_id
 
     def get_user_id(self) -> str:
-        r = requests.get("https://api.spotify.com/v1/me", headers=self.headers, timeout=5)
-        if r.ok:
-            return r.json()["id"]
-        else:
-            raise Exception(f"Error fetching user id: {r.json()['error']['message']}")
+        response = self._request("GET", f"{self.BASE_URL}/me")
+        return response.json()["id"]
 
-    def get_user_playlists(self, user_id: str, limit: int = 10) -> list[SpotifyPlaylist]:
+    def get_user_playlists(self, user_id: str, limit: int = 20) -> list[SpotifyPlaylist]:
         playlists: list[SpotifyPlaylist] = []
-        url = f"https://api.spotify.com/v1/me/playlists?limit={limit}"
+        url = f"{self.BASE_URL}/users/{user_id}/playlists?limit={limit}"
 
         while url:
             try:
-                response = requests.get(url, headers=self.headers, timeout=5)
-                response.raise_for_status()
+                response = self._request("GET", url)
+                if not response: break
+
                 results = response.json()
                 logger.debug(f"Fetched user playlists page: {url}, Items: {len(results.get('items', []))}")
 
@@ -60,71 +91,52 @@ class Spotify:
                     playlists.append(SpotifyPlaylist(id=item.get("id"), name=item.get("name")))
 
                 url = results.get("next")
-            except requests.exceptions.HTTPError as e:
-                logger.error(f"HTTP Error fetching playlists from {url}: {e.response.status_code}")
-                logger.error(f"Response Body: {e.response.text}")
+            except requests.exceptions.RequestException:
                 break
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Error fetching user playlists from {url}: {e}")
-                break
-            except ValueError as e:
-                logger.error(f"Error decoding JSON from {url} for user playlists: {e}")
-                break
-
         return playlists
 
     def get_playlist_tracks(self, playlist_id: str) -> list[SpotifyTrack]:
-        url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
-        params = {"fields": "items(track(id,name,artists(id,name)))"}
         tracks: list[SpotifyTrack] = []
+        url = f"{self.BASE_URL}/playlists/{playlist_id}/tracks"
+        params = {"fields": "items(track(id,name,artists(id,name))),next"}
 
         while url:
-            r = requests.get(url, headers=self.headers, params=params, timeout=5)
-            results = r.json()
-            logger.debug(results)
+            try:
+                current_params = params if "offset" not in url else None
+                response = self._request("GET", url, params=current_params)
+                if not response: break
 
-            for item in results.get("items", []):
-                new_artists: list[SpotifyArtist] = []
-                for artist in item["track"]["artists"]:
-                    new_artist = SpotifyArtist(artist["id"], artist["name"])
-                    new_artists.append(new_artist)
+                results = response.json()
+                for item in results.get("items", []):
+                    if item.get("track"):
+                        artists = [SpotifyArtist(a["id"], a["name"]) for a in item["track"]["artists"]]
+                        tracks.append(SpotifyTrack(item["track"]["id"], item["track"]["name"], artists))
 
-                new_track = SpotifyTrack(id=item["track"]["id"], name=item["track"]["name"], artists=new_artists)
-                tracks.append(new_track)
-
-            url = results.get("next")
-
+                url = results.get("next")
+            except (requests.exceptions.RequestException, ValueError) as e:
+                logger.error(f"Could not process playlist tracks from {url}: {e}")
+                break
         return tracks
 
     def get_playlist_name(self, playlist_id: str) -> str:
-        params = {"fields": "name"}
-        response = requests.get(
-            f"https://api.spotify.com/v1/playlists/{playlist_id}",
-            headers=self.headers,
-            params=params,
-            timeout=5,
+        response = self._request(
+            "GET",
+            f"{self.BASE_URL}/playlists/{playlist_id}",
+            params={"fields": "name"}
         )
-        logger.debug(response.json())
         return response.json()["name"]
 
-    def get_artist_image_by_id(self, artist_id: str) -> str:
-        response = requests.get(
-            f"https://api.spotify.com/v1/artists/{artist_id}",
-            headers=self.headers,
-            timeout=5,
-        )
-        logger.debug(response.json())
-        return response.json()["images"][0]["url"]
+    def get_artist_image_by_id(self, artist_id: str) -> Optional[str]:
+        response = self._request("GET", f"{self.BASE_URL}/artists/{artist_id}")
+        data = response.json()
+        return data["images"][0]["url"] if data.get("images") else None
 
-    def update_playlist_cover_image(self, playlist_id: str, image) -> None:
-        headers = self.headers
-        headers["Content-Type"] = "image/jpeg"
-        r = requests.put(
-            f"https://api.spotify.com/v1/playlists/{playlist_id}/images",
+    def update_playlist_cover_image(self, playlist_id: str, image_data: bytes) -> None:
+        headers = {"Content-Type": "image/jpeg"}
+        self._request(
+            "PUT",
+            f"{self.BASE_URL}/playlists/{playlist_id}/images",
             headers=headers,
-            data=image,
-            timeout=10,
+            data=image_data
         )
-        logger.info(r.status_code)
-        if not r.ok:
-            logger.error(f"Could not update playlist cover image with error: {r.status_code}")
+        logger.info(f"Successfully sent request to update cover for playlist {playlist_id}.")
