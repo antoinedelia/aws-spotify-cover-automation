@@ -60,6 +60,10 @@ class Spotify:
                     playlists.append(SpotifyPlaylist(id=item.get("id"), name=item.get("name")))
 
                 url = results.get("next")
+            except requests.exceptions.HTTPError as e:
+                logger.error(f"HTTP Error fetching playlists from {url}: {e.response.status_code}")
+                logger.error(f"Response Body: {e.response.text}")
+                break
             except requests.exceptions.RequestException as e:
                 logger.error(f"Error fetching user playlists from {url}: {e}")
                 break
