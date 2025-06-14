@@ -1,4 +1,4 @@
-<h1 align=center>Spotify Cover Automation | <a href="https://spotify-cover.antoinedelia.fr/" rel="nofollow">Website</a></h1>
+<h1 align=center>Spotify Cover Automation</h1>
 
 <p align="center"><b>Elevate your Spotify playlists with unique, automatically generated cover art!</b> ✨</p>
 
@@ -6,8 +6,13 @@
   <img width="450" alt="Spotify Cover Automation website overview" src="https://github.com/user-attachments/assets/22742256-38b3-4d91-be93-afeba6dbf3a0" />
 </p>
 
-
 This tool analyzes your chosen Spotify playlist, identifies the **top 4 most frequent artists**, and then crafts a beautiful custom cover image for your playlist. Best of all, it can **automatically update the playlist cover on Spotify** for you. Give your playlists the visual identity they deserve!
+
+> [!IMPORTANT]
+>
+> You need to use your own Spotify's Client ID to make it work for you, as Spotify does not allow unregistered users to use a developer app.
+>
+> See [here](https://developer.spotify.com/documentation/web-api/concepts/quota-modes) for more information.
 
 ## 🌟 Features
 
